@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+from decouple import config
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -42,6 +43,7 @@ INSTALLED_APPS = [
     'cart.apps.CartConfig',
     "shop.apps.ShopConfig",
     "orders.apps.OrdersConfig",
+    "payment.apps.PaymentConfig",
 
 ]
 
@@ -132,3 +134,7 @@ MEDIA_ROOT = BASE_DIR / 'myshop'/'media'
 CART_SESSION_ID = 'cart'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+STRIPE_PUBLISHABLE_KEY=config('STRIPE_PUBLISHABLE_KEY')
+STRIPE_SECRET_KEY=config('STRIPE_SECRET_KEY')
+API_VERSION='2024-04-10'
