@@ -74,17 +74,18 @@ Users don’t wait for heavy tasks like email sending, improving UX and system s
 
 ---
 
-💳 Stripe Payment Integration & Webhooks
+💳 Stripe Payment Integration
 
-Stripe Checkout Session dynamically generated per order
-Secure use of Stripe secret & publishable keys
-Metadata used to associate Stripe session with internal Order ID
+Stripe Checkout Sessions dynamically created per order
+
+Stripe secret and publishable keys securely stored in .env
+
+Metadata links Stripe session to internal Order ID
+
 Success & cancel views implemented
-Stripe Webhooks: Automatically mark orders as paid when payment succeeds
 
 Engineering focus:
-Payment logic is isolated from order creation. Webhooks ensure the app stays in sync with Stripe in real time. Stripe handles PCI compliance through hosted checkout.
-
+Payment logic is isolated from order creation. Stripe’s hosted checkout ensures PCI compliance and secure payment handling.
 ---
 
 ## 🏗️ Architecture Overview
