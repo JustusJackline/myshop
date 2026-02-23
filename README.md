@@ -2,9 +2,13 @@
 
 # Django Online Shop 🛒
 
-A full-stack e-commerce web application built with Django 6, featuring session-based cart management, asynchronous background processing with Celery + RabbitMQ, and Stripe Checkout integration.
+A full-stack e-commerce web application built with **Django 6**, featuring:
 
-This project demonstrates production-style backend architecture, payment integration, and task queue management.
+* Session-based cart management
+* Asynchronous background processing with **Celery + RabbitMQ**
+* **Stripe Checkout** integration
+
+This project demonstrates production-style backend architecture, secure payment handling, and scalable task queue management.
 
 ---
 
@@ -12,9 +16,14 @@ This project demonstrates production-style backend architecture, payment integra
 
 This application simulates a real-world online store workflow:
 
-Product browsing → Cart → Order creation → Stripe Checkout → Background task processing.
+**Product browsing → Cart → Order creation → Stripe Checkout → Background task processing**
 
-The focus of this project is clean architecture, separation of concerns, and scalable backend patterns.
+Focus:
+
+* Clean architecture
+* Separation of concerns
+* Scalable backend patterns
+* Maintainable code for production-ready deployment
 
 ---
 
@@ -22,33 +31,35 @@ The focus of this project is clean architecture, separation of concerns, and sca
 
 ### 🧱 Product Catalog
 
-* Category & Product models with slug-based URLs
-* Optimized Django admin interface
-* Media/image handling with Django media system
-* SEO-friendly structure
+* Category & Product models with slug-based, SEO-friendly URLs
+* Optimized Django admin interface for easier product management
+* Media/image handling via Django’s media system
+
+**Engineering decision:**
+SEO-friendly URLs and a clean admin interface improve usability for both users and store managers.
 
 ---
 
 ### 🛒 Session-Based Shopping Cart
 
-* Cart stored in session (avoids unnecessary DB writes)
-* Custom context processor for global cart access
-* Add / remove / update quantity
+* Cart stored in user session to reduce database writes
+* Custom context processor for global cart access in templates
+* Add, remove, or update item quantities
 * Real-time total calculation
 
 **Engineering decision:**
-Session storage improves performance and reduces database load for anonymous users.
+Session storage improves performance and reduces DB load, especially for anonymous users.
 
 ---
 
 ### 📦 Order Management
 
 * Orders persisted in relational database
-* OrderItem model maintains product-price snapshot
+* **OrderItem** model stores product-price snapshots for historical accuracy
 * Clean separation between cart and order logic
 
 **Engineering decision:**
-Price is copied into OrderItem to preserve historical pricing integrity.
+Copying product price into **OrderItem** preserves order integrity even if product prices change later.
 
 ---
 
@@ -56,24 +67,23 @@ Price is copied into OrderItem to preserve historical pricing integrity.
 
 * Celery configured as distributed task queue
 * RabbitMQ used as message broker (Dockerized)
-* Background task for order confirmation emails
+* Background task for sending order confirmation emails
 
 **Why this matters:**
-User does not wait for email sending or heavy processing.
-Improves UX and system scalability.
+Users don’t wait for heavy tasks like email sending, improving UX and system scalability.
 
 ---
 
-### 💳 Stripe Payment Integration
+💳 Stripe Payment Integration & Webhooks
 
-* Stripe Checkout Session dynamically generated per order
-* Secure use of Stripe secret & publishable keys
-* Metadata used to associate Stripe session with internal Order ID
-* Success & cancel views implemented
+Stripe Checkout Session dynamically generated per order
+Secure use of Stripe secret & publishable keys
+Metadata used to associate Stripe session with internal Order ID
+Success & cancel views implemented
+Stripe Webhooks: Automatically mark orders as paid when payment succeeds
 
-**Engineering focus:**
-Payment logic is isolated from order creation.
-Stripe handles PCI compliance through hosted checkout.
+Engineering focus:
+Payment logic is isolated from order creation. Webhooks ensure the app stays in sync with Stripe in real time. Stripe handles PCI compliance through hosted checkout.
 
 ---
 
@@ -82,7 +92,7 @@ Stripe handles PCI compliance through hosted checkout.
 ```
 User → Django Views → Cart (Session)
                      ↓
-                Order Creation (DB)
+                Order Creation (Database)
                      ↓
              Stripe Checkout Session
                      ↓
@@ -91,101 +101,113 @@ User → Django Views → Cart (Session)
               Background Email Task
 ```
 
-The system separates:
+**System design highlights:**
 
-* Request handling
-* Persistence layer
-* Payment processing
-* Background tasks
-
-This mirrors production-grade web application architecture.
+* Clear separation of request handling, persistence, payment, and background tasks
+* Mirrors production-grade web application architecture
+* Supports asynchronous, non-blocking operations
 
 ---
 
 ## 🛠️ Tech Stack
 
-Backend: Django 6
-Database: SQLite (dev)
-Task Queue: Celery
-Message Broker: RabbitMQ (Docker)
-Payments: Stripe API (Checkout)
-Containerization: Docker
-Frontend: HTML5, CSS
+* **Backend:** Django 6
+* **Database:** SQLite (development), PostgreSQL (production-ready)
+* **Task Queue:** Celery
+* **Message Broker:** RabbitMQ (Dockerized)
+* **Payments:** Stripe Checkout
+* **Frontend:** HTML5, CSS
+* **Containerization:** Docker (RabbitMQ)
 
 ---
 
 ## ⚙️ Local Setup
 
-### Clone
+### 1. Clone the Repository
 
-```
+```bash
 git clone https://github.com/JustusJackline/myshop.git
 cd myshop
 ```
 
-### Virtual Environment
+### 2. Create Virtual Environment & Install Dependencies
 
-```
+```bash
 python -m venv env
-source env/bin/activate
+source env/bin/activate   # On Windows: env\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Stripe Configuration
+### 3. Stripe Configuration
 
-Add to `settings.py`:
+Create a `.env` file with your test keys:
 
 ```
-STRIPE_SECRET_KEY=your_secret_key
-STRIPE_PUBLISHABLE_KEY=your_publishable_key
-API_VERSION=2023-10-16
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
+> Do **not** commit `.env` to GitHub.
+
+Update `settings.py`:
+
+```python
+from decouple import config
+
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
+STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
+STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET')
 ```
 
 ---
 
-### Start RabbitMQ (Docker)
+### 4. Start RabbitMQ (Docker)
 
-```
-sudo docker run -d --name rabbitmq \
+```bash
+docker run -d --name rabbitmq \
   -p 5672:5672 \
   -p 15672:15672 \
   rabbitmq:3.13.1-management
 ```
 
+Access RabbitMQ Management UI: [http://localhost:15672](http://localhost:15672)
+(Default login: guest / guest)
+
 ---
 
-### Run Celery Worker
+### 5. Run Celery Worker
 
-```
+```bash
 celery -A myshop worker -l info
 ```
 
 ---
 
-### Run Django
+### 6. Run Django Server
 
-```
+```bash
 python manage.py migrate
-python manage.py runserver
+python manage.py runserver 8080
 ```
+
+> Use port `8080` to match your Stripe listener forward URL:
+> `stripe listen --forward-to localhost:8080/payment/webhook/`
 
 ---
 
 ## 📈 What This Project Demonstrates
 
-* RESTful backend architecture
-* Task queue integration
-* Payment gateway integration
-* Clean separation of business logic
+* Production-style RESTful backend architecture
+* Task queue integration with Celery + RabbitMQ
+* Stripe payment gateway integration
+* Separation of business logic from payment and cart handling
 * Scalable background processing patterns
 
 ---
 
 ## 🔜 Next Enhancements
 
-* Stripe webhooks for automatic order state updates
-* PDF invoice generation
-* PostgreSQL production configuration
-* Deployment (Docker Compose + Nginx)
-* CI/CD pipeline
-
+* Generate PDF invoices for orders
+* Deploy with **PostgreSQL**, Docker Compose, and Nginx
+* CI/CD pipeline for automated testing and deployment
